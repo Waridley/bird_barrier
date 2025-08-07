@@ -11,6 +11,7 @@ use std::fmt::{Debug, Formatter};
 ///
 /// This resource maintains the state of all setup entries, their progress checkers,
 /// and the provider systems that contribute to setup completion.
+// TODO: A Schedule would ideally be better than manually running systems 
 #[derive(Resource, Debug)]
 pub struct SetupTracker<K: SetupKey> {
     pub(crate) entries: HashMap<K, ProgressCheckerId>,
@@ -61,8 +62,6 @@ impl<K: SetupKey> SetupTracker<K> {
     /// - Unprovided setup keys (keys that are required but never provided)
     /// - Duplicate providers (multiple providers for the same key)
     /// - Cyclic dependencies (circular dependency chains)
-    ///
-    /// Returns an error if any issues are found.
     pub fn validate(world: &mut World) -> Result<(), InvalidSetupGraph<K>>
     where
         K: Debug,
@@ -83,7 +82,6 @@ impl<K: SetupKey> SetupTracker<K> {
 
             providers.retain(|_, providers| providers.len() > 1);
 
-            // Detect cycles using depth-first search
             let cyclic_dependencies = Self::detect_cycles(&tracker);
 
             if !unprovided.is_empty() || !providers.is_empty() || !cyclic_dependencies.is_empty() {
@@ -170,7 +168,7 @@ impl<K: SetupKey> SetupTracker<K> {
 
         // Initialize all keys
         for key in tracker.entries.keys() {
-            dependencies.entry(key.clone()).or_insert_with(Vec::new);
+            dependencies.entry(key.clone()).or_default();
         }
 
         // Populate dependencies from provider requirements
@@ -179,7 +177,7 @@ impl<K: SetupKey> SetupTracker<K> {
                 for required in info.requires() {
                     dependencies
                         .entry(provided.clone())
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(required.clone());
                 }
             }
@@ -268,17 +266,16 @@ impl<K: SetupKey> SetupTracker<K> {
 }
 
 /// Error type for invalid setup graph configurations.
-#[allow(unused)] // Fields are specifically for debug output
 #[derive(Debug, Clone)]
 pub struct InvalidSetupGraph<K: SetupKey + Debug> {
-    unprovided: HashSet<K>,
-    duplicate_providers: HashMap<K, Vec<SystemId>>,
-    cyclic_dependencies: HashSet<K>,
+    pub unprovided: HashSet<K>,
+    pub duplicate_providers: HashMap<K, Vec<SystemId>>,
+    pub cyclic_dependencies: HashSet<K>,
 }
 
 impl<K: SetupKey + Debug> std::fmt::Display for InvalidSetupGraph<K> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        <Self as std::fmt::Debug>::fmt(self, f)
+        <Self as Debug>::fmt(self, f)
     }
 }
 
@@ -296,7 +293,7 @@ mod tests {
         D,
     }
 
-    impl crate::SetupKey for TestSetupKey {
+    impl SetupKey for TestSetupKey {
         fn register_progress_checker(&self, world: &mut World) -> SystemId<(), Progress> {
             world.register_system(|| Progress::DONE)
         }

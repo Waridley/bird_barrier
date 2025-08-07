@@ -92,7 +92,7 @@ use bevy_state::{state::States, prelude::State};
 use std::hash::Hash;
 
 #[cfg(feature = "assets")]
-use bevy_asset::{Asset, AssetServer, LoadState, UntypedAssetId};
+use bevy_asset::{AssetServer, UntypedAssetId};
 
 mod plugin;
 mod progress;
@@ -104,7 +104,8 @@ pub use progress::*;
 pub use provider::*;
 pub use tracker::*;
 
-/// A trait for defining setup keys that can be used to track setup progress.
+/// Implement this trait for a type that defines a single unit of setup, which can be provided by
+/// and/or depended on by [Provider]s.
 ///
 /// Setup keys represent different stages or components of your application's initialization.
 /// Each key must be able to register a progress checker system and optionally provide
@@ -128,7 +129,7 @@ pub trait SetupKey: Eq + Hash + Clone + Send + Sync + 'static {
 /// Type alias for progress checker system IDs.
 pub type ProgressCheckerId = SystemId<(), Progress>;
 
-/// Helper function to check progress based on whether a single entity with the given filter exists.
+/// Helper function to check progress based on whether a single entity exists matching the given filter.
 pub fn single_spawn_progress<F: QueryFilter>(q: Option<Single<(), F>>) -> Progress {
     q.is_some().into()
 }
@@ -142,7 +143,7 @@ pub fn resource_progress<R: Resource>(res: Option<Res<R>>) -> Progress {
 pub fn state_progress<S: States>(state: S) -> impl System<In = (), Out = Progress> {
     IntoSystem::into_system(move |curr: Option<Res<State<S>>>| {
         curr.map(|curr| (*curr.get() == state).into())
-            .unwrap_or(Default::default())
+            .unwrap_or_default()
     })
 }
 

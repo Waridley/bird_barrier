@@ -46,12 +46,11 @@ use std::sync::Mutex;
 ///     println!("Setup finished!");
 /// }
 ///
-/// // Example usage (commented out to avoid doc test compilation issues):
-/// // App::new()
-/// //     .add_plugins(SetupTrackingPlugin::<MySetupKey, _, _, _>::new(
-/// //         || true, // Always run condition
-/// //         setup_complete,
-/// //     ));
+/// App::new()
+///     .add_plugins(SetupTrackingPlugin::<MySetupKey, _, _, _, _>::new(
+///         || true, // Always run condition
+///         setup_complete,
+///     ));
 /// ```
 pub struct SetupTrackingPlugin<K: SetupKey, C: Condition<M>, M, Fin: SystemParamFunction<Marker, In = (), Out = ()>, Marker> {
     condition: Mutex<Option<C>>,
@@ -67,7 +66,7 @@ impl<K: SetupKey, C: Condition<M>, M, Fin: SystemParamFunction<Marker, In = (), 
     /// # Parameters
     ///
     /// - `condition`: A condition that determines when setup systems should run
-    /// - `on_finished`: A system to run when all setup tasks are completehttps://docs.rs/bevy-persistent/0.8.0/bevy_persistent/
+    /// - `on_finished`: A system to run when all setup tasks are complete
     pub fn new(condition: C, on_finished: Fin) -> Self {
         Self {
             condition: Mutex::new(Some(condition)),
@@ -109,9 +108,8 @@ pub fn validate_tracker<K: SetupKey + Debug>(world: &mut World) {
 ///
 /// This system:
 /// 1. Checks which setup keys are ready (their progress checkers return finished)
-/// 2. Runs provider systems whose requirements are met and provisions aren't already ready
-/// 3. Calculates overall progress
-/// 4. Runs the completion callback if all setup is finished
+/// 2. Runs provider systems whose requirements are met and provisions aren't already all finished
+/// 3. Runs the completion callback if all setup is finished
 pub fn advance_setup<K: SetupKey + Debug>(world: &mut World) {
     world.resource_scope::<SetupTracker<K>, _>(|world, mut tracker| {
         let mut pending = HashSet::new();
@@ -161,5 +159,3 @@ pub fn advance_setup<K: SetupKey + Debug>(world: &mut World) {
         }
     });
 }
-
-// Tests removed due to complexity - basic functionality is tested in other modules

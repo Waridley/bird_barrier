@@ -58,8 +58,6 @@ impl Progress {
     /// Progress value representing complete progress (1.0).
     pub const DONE: Self = Self::new(1.0);
 
-
-
     /// Returns true if the progress is considered finished (>= 1.0 - f32::EPSILON).
     ///
     /// Non-finite values are never considered finished.

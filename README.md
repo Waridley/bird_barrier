@@ -1,18 +1,17 @@
 # Bird Barrier
 
-A Bevy plugin for coordinating setup tasks with dependency management - wait for all birds to gather before flying together.
+A Bevy plugin for coordinating setup/loading tasks with dependency management.
 
-Like a synchronization barrier in concurrent programming, Bird Barrier ensures all your setup tasks complete before proceeding to the next phase of your application.
+Like a synchronization barrier in concurrent programming, Bird Barrier ensures 
+all your setup tasks complete before continuing.
 
 ## Features
 
-- **Dependency Management**: Define setup tasks with requirements and provisions
+- **Dependency Management**: Define a graph of setup tasks with requirements and provisions
 - **Progress Tracking**: Monitor the progress of individual tasks and overall setup
 - **Automatic Scheduling**: Tasks run automatically when their dependencies are satisfied
 - **Validation**: Detect missing providers, duplicate providers, and cyclic dependencies
-- **Flexible Progress Calculation**: Custom progress checkers and relative time estimates
-- **Minimal Dependencies**: Only depends on specific Bevy crates (bevy_ecs, bevy_app, bevy_log, bevy_utils)
-- **Optional Features**: Asset tracking and reflection support available as optional features
+- **Separation of Concerns**: Define all conditions for moving to the next state separately from the systems that satisfy those conditions
 
 ## Installation
 

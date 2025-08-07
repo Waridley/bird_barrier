@@ -29,14 +29,18 @@ impl<K: SetupKey> ProviderInfo<K> {
 
     /// Checks if this provider should run based on the current state of setup entries.
     ///
-    /// A provider should run if:
-    /// - None of its provisions are already finished
-    /// - All of its requirements are finished
+    /// A provider should run if any key it provides is still pending, and all of its requirements 
+    /// are satisfied.
     pub fn should_run(&self, entries: &HashMap<K, ProgressCheckerId>, world: &mut World) -> bool {
+        let mut all_provisions_finished = true;
         for provision in &self.provides {
-            if world.run_system(entries[provision]).unwrap().finished() {
-                return false;
+            if !world.run_system(entries[provision]).unwrap().finished() {
+                all_provisions_finished = false;
+                break;
             }
+        }
+        if all_provisions_finished {
+            return false;
         }
         for requirement in &self.requires {
             if !world.run_system(entries[requirement]).unwrap().finished() {
@@ -64,9 +68,8 @@ impl<K: SetupKey> ProviderInfo<K> {
 
 /// A setup provider that defines a system with its dependencies and provisions.
 ///
-/// Providers are the core building blocks of the setup tracking system. Each provider
-/// represents a system that should run when its requirements are met and provides
-/// certain setup keys when complete.
+/// Providers are the nodes of the setup graph. Each provider represents a system that should run
+/// when its requirements are met and provides certain setup keys when complete.
 pub struct Provider<K: SetupKey, S: IntoSystem<(), (), M>, M> {
     requires: Vec<K>,
     provides: Vec<K>,
@@ -88,20 +91,7 @@ impl<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M> Provider<K, S, M> {
         
         let name = name.unwrap_or_else(|| {
             let full_name = std::any::type_name_of_val(&system);
-            let full_name: &'static str = if full_name.starts_with('<') && full_name.ends_with('>')
-            {
-                &full_name[1..full_name.len() - 2]
-            } else {
-                full_name
-            };
-            // Remove common prefixes to make names cleaner
-            let full_name: &'static str = full_name
-                .trim_start_matches("setup_tracking::");
-            let mut full_name = Cow::<'static, str>::Borrowed(full_name);
-            if full_name.contains("setup_tracking::") {
-                full_name = Cow::Owned(full_name.replace("setup_tracking::", ""));
-            }
-            full_name
+            Cow::<'static, str>::Borrowed(full_name)
         });
         
         let info = ProviderInfo {
@@ -177,17 +167,16 @@ impl RegisterProvider for App {
 ///     // Scene building logic
 /// }
 ///
-/// // Example usage (commented out to avoid doc test compilation issues):
-/// // App::new()
-/// //     .register_provider(
-/// //         load_assets
-/// //             .provides([MySetupKey::LoadAssets])
-/// //     )
-/// //     .register_provider(
-/// //         build_scene
-/// //             .requires([MySetupKey::LoadAssets])
-/// //             .provides([MySetupKey::BuildScene])
-/// //     );
+/// App::new()
+///     .register_provider(
+///         load_assets
+///             .provides([MySetupKey::LoadAssets])
+///     )
+///     .register_provider(
+///         build_scene
+///             .requires([MySetupKey::LoadAssets])
+///             .provides([MySetupKey::BuildScene])
+///     );
 /// ```
 pub trait IntoDependencyProvider<K: SetupKey, S: IntoSystem<(), (), M>, M> {
     /// Specifies what setup keys this provider provides.
@@ -232,5 +221,3 @@ impl<K: SetupKey, S: IntoSystem<(), (), M>, M> IntoDependencyProvider<K, S, M>
         self
     }
 }
-
-// Tests removed due to complexity - basic functionality is tested in other modules
