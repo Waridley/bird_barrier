@@ -1,0 +1,33 @@
+[package]
+name = "bird_barrier"
+version = "0.1.0"
+description = "A Bevy plugin for coordinating setup tasks with dependency management - wait for all birds to gather before flying together"
+edition = "2021"
+authors = ["Waridley"]
+rust-version = "1.70.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/your-repo/bird_barrier"
+keywords = ["bevy", "gamedev", "setup", "barrier", "synchronization"]
+categories = ["game-development"]
+
+[dependencies]
+bevy_app = "0.16.0"
+bevy_ecs = "0.16.0"
+bevy_log = "0.16.0"
+bevy_platform = "0.16.0"
+bevy_state = "0.16.0"
+bevy_asset = { version = "0.16.0", optional = true }
+bevy_reflect = { version = "0.16.0", optional = true }
+nutype = "0.6.1"
+
+[dev-dependencies]
+bevy = "0.16.0"
+
+[features]
+default = []
+# Enable asset loading progress tracking
+assets = ["dep:bevy_asset"]
+# Enable reflection support for setup keys
+reflect = ["dep:bevy_reflect"]
+# Enable additional debugging features
+debug = []
