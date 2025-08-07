@@ -1,9 +1,6 @@
 use crate::{ProgressCheckerId, SetupKey, SetupTracker};
 use bevy_app::App;
-use bevy_ecs::{
-    prelude::*,
-    system::IntoSystem,
-};
+use bevy_ecs::{prelude::*, system::IntoSystem};
 use bevy_platform::collections::HashMap;
 use std::borrow::Cow;
 use std::marker::PhantomData;
@@ -11,59 +8,59 @@ use std::marker::PhantomData;
 /// Information about a setup provider, including its dependencies and what it provides.
 #[derive(Debug, Clone)]
 pub struct ProviderInfo<K: SetupKey> {
-    requires: Vec<K>,
-    provides: Vec<K>,
-    name: Cow<'static, str>,
+	requires: Vec<K>,
+	provides: Vec<K>,
+	name: Cow<'static, str>,
 }
 
 impl<K: SetupKey> ProviderInfo<K> {
-    /// Creates a new ProviderInfo.
-    #[cfg(test)]
-    pub fn new(requires: Vec<K>, provides: Vec<K>, name: Cow<'static, str>) -> Self {
-        Self {
-            requires,
-            provides,
-            name,
-        }
-    }
+	/// Creates a new ProviderInfo.
+	#[cfg(test)]
+	pub fn new(requires: Vec<K>, provides: Vec<K>, name: Cow<'static, str>) -> Self {
+		Self {
+			requires,
+			provides,
+			name,
+		}
+	}
 
-    /// Checks if this provider should run based on the current state of setup entries.
-    ///
-    /// A provider should run if any key it provides is still pending, and all of its requirements 
-    /// are satisfied.
-    pub fn should_run(&self, entries: &HashMap<K, ProgressCheckerId>, world: &mut World) -> bool {
-        let mut all_provisions_finished = true;
-        for provision in &self.provides {
-            if !world.run_system(entries[provision]).unwrap().finished() {
-                all_provisions_finished = false;
-                break;
-            }
-        }
-        if all_provisions_finished {
-            return false;
-        }
-        for requirement in &self.requires {
-            if !world.run_system(entries[requirement]).unwrap().finished() {
-                return false;
-            }
-        }
-        true
-    }
+	/// Checks if this provider should run based on the current state of setup entries.
+	///
+	/// A provider should run if any key it provides is still pending, and all of its requirements
+	/// are satisfied.
+	pub fn should_run(&self, entries: &HashMap<K, ProgressCheckerId>, world: &mut World) -> bool {
+		let mut all_provisions_finished = true;
+		for provision in &self.provides {
+			if !world.run_system(entries[provision]).unwrap().finished() {
+				all_provisions_finished = false;
+				break;
+			}
+		}
+		if all_provisions_finished {
+			return false;
+		}
+		for requirement in &self.requires {
+			if !world.run_system(entries[requirement]).unwrap().finished() {
+				return false;
+			}
+		}
+		true
+	}
 
-    /// Returns the setup keys that this provider requires.
-    pub fn requires(&self) -> &[K] {
-        &self.requires
-    }
+	/// Returns the setup keys that this provider requires.
+	pub fn requires(&self) -> &[K] {
+		&self.requires
+	}
 
-    /// Returns the setup keys that this provider provides.
-    pub fn provides(&self) -> &[K] {
-        &self.provides
-    }
+	/// Returns the setup keys that this provider provides.
+	pub fn provides(&self) -> &[K] {
+		&self.provides
+	}
 
-    /// Returns the name of this provider.
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+	/// Returns the name of this provider.
+	pub fn name(&self) -> &str {
+		&self.name
+	}
 }
 
 /// A setup provider that defines a system with its dependencies and provisions.
@@ -71,68 +68,68 @@ impl<K: SetupKey> ProviderInfo<K> {
 /// Providers are the nodes of the setup graph. Each provider represents a system that should run
 /// when its requirements are met and provides certain setup keys when complete.
 pub struct Provider<K: SetupKey, S: IntoSystem<(), (), M>, M> {
-    requires: Vec<K>,
-    provides: Vec<K>,
-    system: S,
-    name: Option<Cow<'static, str>>,
-    _marker: PhantomData<M>,
+	requires: Vec<K>,
+	provides: Vec<K>,
+	system: S,
+	name: Option<Cow<'static, str>>,
+	_marker: PhantomData<M>,
 }
 
 impl<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M> Provider<K, S, M> {
-    /// Registers this provider with the world's setup tracker.
-    fn register(self, world: &mut World) {
-        let Self {
-            requires,
-            provides,
-            system,
-            name,
-            ..
-        } = self;
-        
-        let name = name.unwrap_or_else(|| {
-            let full_name = std::any::type_name_of_val(&system);
-            Cow::<'static, str>::Borrowed(full_name)
-        });
-        
-        let info = ProviderInfo {
-            requires,
-            provides,
-            name,
-        };
-        let system = world.register_system(system);
-        world.resource_scope::<SetupTracker<K>, _>(|world, mut tracker| {
-            tracker.register_provider(system, info, world);
-        })
-    }
+	/// Registers this provider with the world's setup tracker.
+	fn register(self, world: &mut World) {
+		let Self {
+			requires,
+			provides,
+			system,
+			name,
+			..
+		} = self;
+
+		let name = name.unwrap_or_else(|| {
+			let full_name = std::any::type_name_of_val(&system);
+			Cow::<'static, str>::Borrowed(full_name)
+		});
+
+		let info = ProviderInfo {
+			requires,
+			provides,
+			name,
+		};
+		let system = world.register_system(system);
+		world.resource_scope::<SetupTracker<K>, _>(|world, mut tracker| {
+			tracker.register_provider(system, info, world);
+		})
+	}
 }
 
 /// Trait for registering providers with the setup tracking system.
 pub trait RegisterProvider {
-    /// Registers a provider with this world or app.
-    fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
-        &mut self,
-        provider: Provider<K, S, M>,
-    ) -> &mut Self;
+	/// Registers a provider with this world or app.
+	fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
+		&mut self,
+		provider: Provider<K, S, M>,
+	) -> &mut Self;
 }
 
 impl RegisterProvider for World {
-    fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
-        &mut self,
-        provider: Provider<K, S, M>,
-    ) -> &mut Self {
-        provider.register(self);
-        self
-    }
+	fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
+		&mut self,
+		provider: Provider<K, S, M>,
+	) -> &mut Self {
+		provider.register(self);
+		self
+	}
 }
 
 impl RegisterProvider for App {
-    fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
-        &mut self,
-        provider: Provider<K, S, M>,
-    ) -> &mut Self {
-        provider.register(self.world_mut());
-        self
-    }
+	fn register_provider<K: SetupKey, S: IntoSystem<(), (), M> + 'static, M>(
+		&mut self,
+		provider: Provider<K, S, M>,
+	) -> &mut Self {
+		provider.register(self.world_mut());
+		self
+	}
 }
 
 /// Trait for converting systems into dependency providers.
@@ -179,45 +176,45 @@ impl RegisterProvider for App {
 ///     );
 /// ```
 pub trait IntoDependencyProvider<K: SetupKey, S: IntoSystem<(), (), M>, M> {
-    /// Specifies what setup keys this provider provides.
-    fn provides(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M>;
-    
-    /// Specifies what setup keys this provider requires.
-    fn requires(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M>;
+	/// Specifies what setup keys this provider provides.
+	fn provides(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M>;
+
+	/// Specifies what setup keys this provider requires.
+	fn requires(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M>;
 }
 
 impl<K: SetupKey, S: IntoSystem<(), (), M>, M> IntoDependencyProvider<K, S, M> for S {
-    fn provides(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M> {
-        Provider {
-            provides: keys.into_iter().collect(),
-            requires: Vec::new(),
-            system: self,
-            name: None,
-            _marker: PhantomData,
-        }
-    }
+	fn provides(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M> {
+		Provider {
+			provides: keys.into_iter().collect(),
+			requires: Vec::new(),
+			system: self,
+			name: None,
+			_marker: PhantomData,
+		}
+	}
 
-    fn requires(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M> {
-        Provider {
-            provides: Vec::new(),
-            requires: keys.into_iter().collect(),
-            system: self,
-            name: None,
-            _marker: PhantomData,
-        }
-    }
+	fn requires(self, keys: impl IntoIterator<Item = K>) -> Provider<K, S, M> {
+		Provider {
+			provides: Vec::new(),
+			requires: keys.into_iter().collect(),
+			system: self,
+			name: None,
+			_marker: PhantomData,
+		}
+	}
 }
 
 impl<K: SetupKey, S: IntoSystem<(), (), M>, M> IntoDependencyProvider<K, S, M>
-    for Provider<K, S, M>
+	for Provider<K, S, M>
 {
-    fn provides(mut self, keys: impl IntoIterator<Item = K>) -> Self {
-        self.provides.extend(keys);
-        self
-    }
-    
-    fn requires(mut self, keys: impl IntoIterator<Item = K>) -> Self {
-        self.requires.extend(keys);
-        self
-    }
+	fn provides(mut self, keys: impl IntoIterator<Item = K>) -> Self {
+		self.provides.extend(keys);
+		self
+	}
+
+	fn requires(mut self, keys: impl IntoIterator<Item = K>) -> Self {
+		self.requires.extend(keys);
+		self
+	}
 }
