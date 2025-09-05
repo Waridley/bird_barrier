@@ -128,14 +128,6 @@ Each provider can:
 
 This separation allows you to define what your setup steps need without tightly coupling them to specific implementations.
 
-## Examples
-
-Bird Barrier includes examples demonstrating different usage patterns:
-
-- **[`basic_usage.rs`](examples/basic_usage.rs)** - Simple enum-based keys (recommended starting point)
-- **[`trait_object_keys.rs`](examples/trait_object_keys.rs)** - Advanced trait object-based keys for polymorphic setup providers
-- **[`visualization.rs`](examples/visualization.rs)** - Interactive graph visualization (requires `visualization` feature)
-
 ### Progress Tracking
 
 The system automatically tracks progress by:
@@ -145,14 +137,22 @@ The system automatically tracks progress by:
 3. Running providers whose dependencies are satisfied
 4. Calling the completion callback when all setup is done
 
+## Examples
+
+Bird Barrier includes examples demonstrating different usage patterns:
+
+- **[`basic_usage.rs`](examples/basic_usage.rs)** - Simple enum-based keys (recommended starting point)
+- **[`trait_object_keys.rs`](examples/trait_object_keys.rs)** - Advanced trait object-based keys for polymorphic setup providers
+- **[`visualization.rs`](examples/visualization.rs)** - Interactive graph visualization (requires `visualization` feature)
+
 ## Helper Functions
 
 The crate provides several helper functions for common progress checking patterns:
 
-- `single_spawn_progress<F>()`: Check if an entity with a filter exists
-- `resource_progress<R>()`: Check if a resource exists
+- `single_spawn_progress<F>()`: Check if an entity with filter `F` exists
+- `resource_progress<R>()`: Check if resource `R` exists
 - `state_progress<S>(state)`: Check if the app is in a specific state
-- `assets_progress<C>()`: Check asset loading progress for a collection
+- `assets_progress<C>()`: Check asset loading progress for collection `C`
 
 ## License
 
