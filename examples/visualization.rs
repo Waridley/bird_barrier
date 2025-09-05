@@ -176,21 +176,9 @@ fn setup_camera(mut commands: Commands) {
 fn toggle_graph_window(
 	mut commands: Commands,
 	keys: Res<ButtonInput<KeyCode>>,
-	state: Option<ResMut<SetupGraphVisState<GameSetup>>>,
 ) {
 	if keys.just_pressed(KeyCode::KeyG) {
-		// Initialize state if it doesn't exist
-		if state.is_none() {
-			commands.insert_resource(SetupGraphVisState::<GameSetup>::default());
-			println!("📊 Graph window opened");
-		} else {
-			let is_open = toggle_setup_graph_window(&mut commands, state.as_deref());
-			if is_open {
-				println!("📊 Graph window opened");
-			} else {
-				println!("📊 Graph window closed");
-			}
-		}
+		commands.run_system_cached(toggle_setup_graph_window::<GameSetup>);
 	}
 }
 

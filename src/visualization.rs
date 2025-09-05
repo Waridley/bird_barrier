@@ -87,6 +87,7 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 
 use bevy_egui::egui::{Color32, Ui};
+use bevy_log::{error, info, trace};
 use egui_snarl::ui::{NodeLayout, PinInfo, SnarlPin, SnarlStyle, SnarlViewer, WireStyle};
 use egui_snarl::{InPin, InPinId, NodeId, OutPin, OutPinId, Snarl};
 
@@ -117,8 +118,6 @@ impl<K: SetupKey> Default for SetupGraphVisualizationPlugin<K> {
 
 impl<K: SetupKey + Debug + Send + Sync + 'static> Plugin for SetupGraphVisualizationPlugin<K> {
 	fn build(&self, app: &mut App) {
-		// Note: Users must add EguiPlugin themselves to avoid version conflicts
-
 		app.add_systems(
 			PreUpdate,
 			sync_snarl::<K>.run_if(resource_exists::<SetupGraphVisState<K>>),
@@ -346,31 +345,33 @@ pub fn draw_setup_graph<K: SetupKey + Debug>(
 /// This function programmatically opens the dedicated visualization window.
 /// The window will remain open until closed by the user or by calling
 /// `close_setup_graph_window()`.
-pub fn open_setup_graph_window<K: SetupKey>(commands: &mut Commands) {
+pub fn open_setup_graph_window<K: SetupKey>(mut commands: Commands) {
+	info!("Opening setup graph window");
 	commands.init_resource::<SetupGraphVisState<K>>();
 }
 
 /// Closes the setup graph visualization window.
 ///
-/// This function programmatically closes the dedicated visualization window.
-pub fn close_setup_graph_window<K: SetupKey>(commands: &mut Commands) {
+/// This system programmatically closes the dedicated visualization window.
+pub fn close_setup_graph_window<K: SetupKey>(mut commands: Commands) {
+	info!("Closing setup graph window");
 	commands.remove_resource::<SetupGraphVisState<K>>();
 }
 
 /// Toggles the setup graph visualization window.
 ///
-/// This function opens the window if it's closed, or closes it if it's open.
+/// This system opens the window if it's closed, or closes it if it's open.
 /// Returns true if the window is now open, false if it's now closed.
 pub fn toggle_setup_graph_window<K: SetupKey>(
-	commands: &mut Commands,
-	state: Option<&SetupGraphVisState<K>>,
-) -> bool {
+	mut commands: Commands,
+	state: Option<Res<SetupGraphVisState<K>>>,
+) {
 	if state.is_some() {
+		info!("Closing setup graph window");
 		commands.remove_resource::<SetupGraphVisState<K>>();
-		false
 	} else {
+		info!("Opening setup graph window");
 		commands.init_resource::<SetupGraphVisState<K>>();
-		true
 	}
 }
 
@@ -385,10 +386,12 @@ pub fn draw_setup_graph_window<K: SetupKey + Debug>(
 	mut state: Option<ResMut<SetupGraphVisState<K>>>,
 ) {
 	let Ok(ctx) = contexts.ctx_mut() else {
+		error!("No egui context");
 		return;
 	};
 
 	let mut open = state.is_some();
+	trace!(open);
 	let was_open = open;
 	bevy_egui::egui::Window::new(format!(
 		"SetupTracker<{}> Graph",
