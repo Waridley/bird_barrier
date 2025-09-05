@@ -59,6 +59,9 @@ impl<K: SetupKey> SetupTracker<K> {
 	/// - Unprovided setup keys (keys that are required but never provided)
 	/// - Duplicate providers (multiple providers for the same key)
 	/// - Cyclic dependencies (circular dependency chains)
+	///
+	/// This can only be used with keys that implement `Debug`, because [`InvalidSetupGraph`]
+	/// requires `K: Debug` for its `Display` implementation.
 	pub fn validate(world: &mut World) -> Result<(), InvalidSetupGraph<K>>
 	where
 		K: Debug,
@@ -264,7 +267,7 @@ impl<K: SetupKey> SetupTracker<K> {
 
 /// Error type for invalid setup graph configurations.
 #[derive(Debug, Clone)]
-pub struct InvalidSetupGraph<K: SetupKey + Debug> {
+pub struct InvalidSetupGraph<K: SetupKey> {
 	pub unprovided: HashSet<K>,
 	pub duplicate_providers: HashMap<K, Vec<SystemId>>,
 	pub cyclic_dependencies: HashSet<K>,
@@ -274,6 +277,19 @@ impl<K: SetupKey + Debug> std::fmt::Display for InvalidSetupGraph<K> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		<Self as Debug>::fmt(self, f)
 	}
+}
+
+impl<K: SetupKey + Debug> std::error::Error for InvalidSetupGraph<K> {}
+
+/// System to validate the setup graph at startup.
+///
+/// Wraps [`SetupTracker::validate`], but returns a [bevy::ecs::error::Result] so it can be used as
+/// a Bevy system.
+///
+/// Also requires keys to be `Debug` for the same reason as [`SetupTracker::validate`].
+pub fn validate_setup_graph<K: SetupKey + Debug>(world: &mut World) -> Result {
+	SetupTracker::<K>::validate(world)?;
+	Ok(())
 }
 
 #[cfg(test)]

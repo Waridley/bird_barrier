@@ -1,4 +1,5 @@
 use nutype::nutype;
+use std::fmt::Formatter;
 
 /// Represents the progress of a setup task as a value between 0.0 and 1.0.
 ///
@@ -73,6 +74,15 @@ impl Progress {
 	/// or other special conditions.
 	pub fn is_finite(self) -> bool {
 		(*self).is_finite()
+	}
+}
+
+impl std::fmt::Display for Progress {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		// Keeps formatting args (precision, padding, etc.)
+		// Could maybe be improved to incorporate extra character in padding
+		std::fmt::Display::fmt(&(**self * 100.0), f)?;
+		f.write_str("%")
 	}
 }
 

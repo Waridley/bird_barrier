@@ -28,7 +28,7 @@
 //!
 //! - `assets`: Enable asset loading progress tracking helpers
 //! - `reflect`: Enable reflection support for setup keys
-//! - `debug`: Enable additional debugging features
+//! - `visualization`: Enable interactive graph visualization with egui
 //!
 //! ## Quick Start
 //!
@@ -95,10 +95,16 @@ mod progress;
 mod provider;
 mod tracker;
 
+#[cfg(feature = "visualization")]
+mod visualization;
+
 pub use plugin::*;
 pub use progress::*;
 pub use provider::*;
 pub use tracker::*;
+
+#[cfg(feature = "visualization")]
+pub use visualization::*;
 
 /// Implement this trait for a type that defines a single unit of setup, which can be provided by
 /// and/or depended on by [Provider]s.

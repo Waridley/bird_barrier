@@ -18,6 +18,9 @@ bevy_platform = "0.16.0"
 bevy_state = "0.16.0"
 bevy_asset = { version = "0.16.0", optional = true }
 bevy_reflect = { version = "0.16.0", optional = true }
+bevy_egui = { version = "0.36.0", optional = true }
+egui-snarl = { version = "0.8.0", optional = true }
+disqualified = { version = "1.0.0", optional = true }
 nutype = "0.6.1"
 
 [dev-dependencies]
@@ -29,3 +32,5 @@ default = ["assets", "reflect"]
 assets = ["dep:bevy_asset"]
 # Enable reflection support for setup keys
 reflect = ["dep:bevy_reflect"]
+# Enable graph visualization with egui
+visualization = ["dep:bevy_egui", "dep:egui-snarl", "dep:disqualified"]

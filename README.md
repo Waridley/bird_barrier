@@ -12,6 +12,7 @@ all your setup tasks complete before continuing.
 - **Automatic Scheduling**: Tasks run automatically when their dependencies are satisfied
 - **Validation**: Detect missing providers, duplicate providers, and cyclic dependencies
 - **Separation of Concerns**: Define all conditions for moving to the next state separately from the systems that satisfy those conditions
+- **Interactive Visualization**: Optional graph visualization with egui for debugging and understanding dependencies
 
 ## Installation
 
@@ -133,6 +134,7 @@ Bird Barrier includes examples demonstrating different usage patterns:
 
 - **[`basic_usage.rs`](examples/basic_usage.rs)** - Simple enum-based keys (recommended starting point)
 - **[`trait_object_keys.rs`](examples/trait_object_keys.rs)** - Advanced trait object-based keys for polymorphic setup providers
+- **[`visualization.rs`](examples/visualization.rs)** - Interactive graph visualization (requires `visualization` feature)
 
 ### Progress Tracking
 
