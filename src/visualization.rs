@@ -43,13 +43,18 @@
 //! # use bird_barrier::*;
 //! # #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 //! # enum MySetupKey { LoadAssets }
+//! # impl SetupKey for MySetupKey {
+//! #     fn register_progress_checker(&self, world: &mut World) -> bevy::ecs::system::SystemId<(), Progress> {
+//! #         world.register_system(|world: &World| Progress::DONE)
+//! #     }
+//! # }
 //! fn toggle_graph_on_key_press(
 //!     mut commands: Commands,
 //!     keys: Res<ButtonInput<KeyCode>>,
 //!     state: Option<Res<SetupGraphVisState<MySetupKey>>>,
 //! ) {
 //!     if keys.just_pressed(KeyCode::KeyG) {
-//!         toggle_setup_graph_window(&mut commands, state.as_deref());
+//!         commands.run_system_cached(toggle_setup_graph_window::<MySetupKey>);
 //!     }
 //! }
 //! ```
@@ -61,6 +66,11 @@
 //! # use bird_barrier::*;
 //! # #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 //! # enum MySetupKey { LoadAssets }
+//! # impl SetupKey for MySetupKey {
+//! #     fn register_progress_checker(&self, world: &mut World) -> bevy::ecs::system::SystemId<(), Progress> {
+//! #         world.register_system(|world: &World| Progress::DONE)
+//! #     }
+//! # }
 //! fn custom_graph_window(
 //!     graph: Res<SetupTracker<MySetupKey>>,
 //!     mut contexts: EguiContexts,

@@ -118,7 +118,7 @@ Providers are systems that contribute to the setup process. This concept is simi
 
 - **Linux package dependencies**: Where multiple packages can "provide" the same capability (e.g., different web servers can all provide `httpd`)
 - **C API headers**: Where an interface is defined in a header file but can be implemented by different source files
-- **Abstract dependencies**: Separating *what* is needed from *how* it's provided
+- **Abstract classes**: Where a class defines an interface but can be implemented by different concrete classes
 
 Each provider can:
 
